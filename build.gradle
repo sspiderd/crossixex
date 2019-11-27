@@ -1,0 +1,39 @@
+buildscript {
+    ext {
+        scalaVersion = "2.13.1"
+        scalaTestVersion = "3.0.8"
+    }
+    dependencies {
+        classpath "gradle.plugin.com.github.maiflai:gradle-scalatest:0.24"
+    }
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+}
+
+group 'crossix'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'scala'
+apply plugin: "com.github.maiflai.scalatest"
+
+jar {
+    manifest {
+        attributes "Main-Class": "crossix.ex.CSVSorter"
+    }
+}
+
+repositories {
+    mavenLocal()
+    jcenter()
+}
+
+dependencies {
+    compile("org.scala-lang:scala-library:$scalaVersion")
+    testCompile("org.scalatest:scalatest_2.13:$scalaTestVersion")
+    testRuntime 'org.pegdown:pegdown:1.4.2'
+    testCompile("org.assertj:assertj-core:3.14.0")
+
+}
