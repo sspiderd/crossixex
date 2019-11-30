@@ -22,7 +22,7 @@ As for the given questions:
 1. The algorithm initially takes the input file, reads chunks of size 'm', sorts them
 and outputs to an initial temporary folder. Note that Timsort (the default scala sorter) 
 requires O(m) space so we can actually hold only m/2 records in memory. however, for 
-simplicity's sake let's assume that Timsort does not require any extra space). Headers
+simplicity's sake let's assume that we actually have 2m space and use only m for sorting. Headers
 are always included (also for the next steps) so we can sort by them and also add them
 to the final output.
 * When parallelism > 1 each process is given a consecutive id number (0..p) and each process
@@ -43,5 +43,25 @@ This continue until only 1 file is left
 The initial sorting needs to sort m rows n/m times therefore the complexity for the first
 step is O(m*log(m)*n/m) => O(n*log(m))
 
-Every step thereafter requires 
+Every step thereafter requires reading each row once and outputting it to a new file. Initially we have n/m files
+and each step merges 2 of them into 1 so the total number of steps is log(n/m).
+
+Concluding: The first step is O(n*log(m)), the second step is O(n*log(n/m)) => O(n*log(m)+n*log(n/m)) =>
+O(nlog(m)+nlog(n)-nlog(m)) => O(n*log(n))
+
+* When parallelism > 1 each process is given n/p rows initially, the sorting of takes m*log(m) time:
+O(m*log(m)*n/p)
+Every step thereafter each process is given n/p rows to deal with, in each step we merge 2 files where initially a process
+is given n/(m*p) files so the total number of steps is O(log(n/mp)) 
+At some point we are left with p files so we can no longer use all of our processes to merge them. 
+the fastest resolution will be to give half the processes 2 files each, 
+then a quarter of the processes will be given 2 files each, etc. until we are left with a single file.
+The total number of steps is log(p)
+of these processes the longest running process will be the one that will do the final merge. That process will
+run n operations on it's final step, n/2 in the step before that until log(p) iterations are made. so:
+(n+n/2+n/4+...) {logp times}. This is a sum of geometric series => O(2*n - 2*n/p) => O(n(1-1/p))
+
+Concluding: The first step is O(n*log(m)/p), the second step is O(n/p*log(n/mp)), the third step is  O(n)=>
+O(n*log(m)/p + n/p(log(n)-log(m)-log(p))) + n) => O(n*log(m)/p + n*log(n)/p - n*log(m)/p - n*log(p)/p + n - n/p)
+=> O(n+ n*log(n)/p - n*log(p)/p - n/p) => O(n+n*log(n)/p)
 
